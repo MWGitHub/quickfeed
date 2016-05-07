@@ -6,8 +6,8 @@ class FeedResource(object):
 
     def on_get(self, req, resp):
         collection_type = req.params.get('sort') or 'default'
-        start = req.params.get('start') or 0
-        count = req.params.get('count') or 10
+        start = int(req.params.get('start') or 0)
+        count = int(req.params.get('count') or 10)
         if start < 0:
             start = 0
         if count < 0 or count > 10:
