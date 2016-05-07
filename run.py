@@ -41,3 +41,5 @@ for item in items:
     item = FeedItem(item)
     item.save()
 print 'Finished populating the database'
+
+FeedItem.all(count=10)

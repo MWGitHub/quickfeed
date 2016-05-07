@@ -2,8 +2,10 @@ from ..util.redis_util import redis_util
 
 class FeedItem(object):
     NAMESPACE = 'item:'
+    NAMESPACE_COLLECTION = 'items:'
 
     def __init__(self, properties):
+        # Set the data from the properties
         data = {}
         self.data = data
         data['id'] = properties.get('id')
@@ -40,5 +42,36 @@ class FeedItem(object):
 
     def save(self):
         r = redis_util.redis
-        key = FeedItem.NAMESPACE + self.data.get('id')
-        r.hmset(key, self.data)
+        pipe = r.pipeline()
+
+        # Save the item data
+        item_id = self.data.get('id')
+        key = FeedItem.NAMESPACE + item_id
+        pipe.hmset(key, self.data)
+
+        # Add to the creation time list
+        collection_key = FeedItem.NAMESPACE_COLLECTION + 'default'
+        pipe.zadd(collection_key, self.data.get('created_time'), item_id)
+
+        # Add to the likes list
+        collection_key = FeedItem.NAMESPACE_COLLECTION + 'likes'
+        pipe.zadd(collection_key, self.data.get('likes'), item_id)
+
+        # Add to the comments list
+        collection_key = FeedItem.NAMESPACE_COLLECTION + 'comments'
+        pipe.zadd(collection_key, self.data.get('comments'), item_id)
+
+        pipe.execute()
+
+    @staticmethod
+    def all(collection_type='default', start=0, count=0):
+        r = redis_util.redis
+        collection_key = FeedItem.NAMESPACE_COLLECTION + collection_type
+        keys = r.zrevrange(collection_key, start, start + count - 1)
+        items = [r.hgetall(FeedItem.NAMESPACE + key) for key in keys]
+        return items
+
+    @staticmethod
+    def count(collection_type='default'):
+        r = redis_util.redis
+        return r.zcard(FeedItem.NAMESPACE_COLLECTION + collection_type)
