@@ -1,4 +1,5 @@
 #QuickFeed
+[![Build Status](https://travis-ci.org/MWGitHub/quickfeed.svg?branch=master)](https://travis-ci.org/MWGitHub/quickfeed)
 
 QuickFeed is a feed displayer with performance in mind. Navigating through the site is smooth and responsive even on slower hardware.
 
