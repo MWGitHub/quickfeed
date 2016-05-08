@@ -1,6 +1,6 @@
 #QuickFeed
 
-QuickFeed is a feed displayer with performance in mind. Navigating through the site is smooth and responsive, even on slower hardware.
+QuickFeed is a feed displayer with performance in mind. Navigating through the site is smooth and responsive even on slower hardware.
 
 Check out a demo at [www.example.com](https://www.example.com/)
 
