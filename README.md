@@ -32,7 +32,7 @@ Hashes are used to allow retrieval of items from sorted sets
   likes,
   comments,
   caption (if exists)
-  
+
   images (if exists)
   images_low_url,
   images_low_width,
@@ -40,7 +40,7 @@ Hashes are used to allow retrieval of items from sorted sets
   images_standard_url,
   images_standard_width,
   images_standard_height,
-  
+
   videos (if exists)
   videos_low_url,
   videos_low_width,
@@ -52,8 +52,9 @@ Hashes are used to allow retrieval of items from sorted sets
 ```
 
 Sorted items are stored as sorted sets with the key items:[type].  
+Sorted sets are used due to their quick range retrieval, addition, and removal.  
 The sets use the following as the score: created_time, likes, and comments.  
-Having three separate sets allows for quick retrieval without having to sort on the fly each time.   
+Having three separate sets allows for quick retrieval without having to sort on the fly each time.  
 Adding is O(log(n)) and is run on all three sorted sets when an item is saved.  
 Removal is also O(log(n)) and can be run when an item is deleted or if one wants to limit the number of items in the set.
 
