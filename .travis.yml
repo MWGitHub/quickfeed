@@ -3,6 +3,11 @@ python:
   - "2.7"
 services:
   - redis-server
+env:
+  - ig_client_id=none
+  - ig_client_secret=none
+  - ig_token=none
+  - quickfeed_user=none
 
 install: "pip install -r requirements.txt"
 script: "python -m unittest discover"
