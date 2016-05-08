@@ -1,4 +1,14 @@
+extras==0.0.3
 falcon==0.3.0
+fixtures==2.0.0
+gunicorn==19.4.5
+hiredis==0.2.0
+linecache2==1.0.0
+pbr==1.9.1
 python-mimeparse==1.5.2
 redis==2.10.5
+requests==2.10.0
 six==1.10.0
+testtools==2.1.0
+traceback2==1.4.0
+unittest2==1.1.0

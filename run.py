@@ -5,7 +5,7 @@ import falcon
 from config import config
 from app.feed.controllers import FeedResource
 from app.feed.models import FeedItem
-import app.feed.fetcher as fetcher
+import app.util.seeder as seeder
 
 app = falcon.API()
 
@@ -34,24 +34,7 @@ app.add_route('/static/{type}/{file}', StaticResource())
 feed = FeedResource()
 app.add_route('/api/feed', feed)
 
-# Check if data file exists, otherwise fetch and create
-items = None
-print 'Fetching data if needed...'
-if os.path.isfile('data.json'):
-    with open('data.json', 'r') as f:
-        items = json.load(f)
-else:
-    items = fetcher.fetch(config['quickfeed_user'], 200, config['ig_token'])
-
-    with open('data.json', 'w') as f:
-        json.dump(items, f)
-print 'Finished fetching data'
-
-# Populate the database
-print 'Populating the database...'
-for item in items:
-    item = FeedItem(item)
-    item.save()
-print 'Finished populating the database'
-
-FeedItem.all(count=10)
+# Fetch the intial data
+print 'Fetching initial data...'
+seeder.populate()
+print 'Fetch complete'

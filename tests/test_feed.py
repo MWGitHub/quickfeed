@@ -1,12 +1,14 @@
 import falcon
 import falcon.testing as testing
 import json
+import app.util.seeder as seeder
 from app.feed.controllers import FeedResource
 
 class FeedTestCase(testing.TestBase):
     def setUp(self):
         super(FeedTestCase, self).setUp()
         self.api.add_route('/api/feed', FeedResource())
+        seeder.populate()
 
     def test_get(self):
         url = '/api/feed'
