@@ -9,6 +9,13 @@ import app.util.seeder as seeder
 
 app = falcon.API()
 
+ALLOWED_TYPES = {
+    'html': 'text/html',
+    'json': 'application/json',
+    'js': 'text/javascript',
+    'css': 'text/css'
+}
+
 # Add the static page root for development use
 class Root(object):
     def on_get(self, req, resp):
@@ -22,6 +29,11 @@ app.add_route('/', Root())
 class StaticResource(object):
     def on_get(self, req, resp, **kwargs):
         path = req.path[1:].replace('..', '')
+        ext = path.split('.')[-1]
+        if ALLOWED_TYPES.get(ext) is None:
+            resp.content_type = 'application/json'
+        else:
+            resp.content_type = ALLOWED_TYPES.get(ext)
         resp.status = falcon.HTTP_200
         try:
             with open(path, 'r') as f:

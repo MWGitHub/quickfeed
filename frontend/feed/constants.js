@@ -1,0 +1,4 @@
+export default {
+  RECEIVE_ITEMS: 'RECEIVE_ITEMS',
+  RESET_ITEMS: 'RESET_ITEMS'
+}
