@@ -1,7 +1,9 @@
 import React from 'react';
 import ApiUtil from '../util/api-util';
 import FeedStore from './store';
+import FeedTypeStore from './feed-type-store';
 import FeedList from './feed-list';
+import FeedActions from './actions';
 
 class Feed extends React.Component {
   constructor(props) {
@@ -9,7 +11,8 @@ class Feed extends React.Component {
 
     this.state = {
       items: FeedStore.all(),
-      meta: FeedStore.getMeta()
+      meta: FeedStore.getMeta(),
+      type: FeedTypeStore.getType()
     };
   }
 
@@ -20,11 +23,24 @@ class Feed extends React.Component {
         meta: FeedStore.getMeta()
       });
     });
-    ApiUtil.fetchItems();
+
+    this.feedTypeToken = FeedTypeStore.addListener(_ => {
+      this.setState({
+        type: FeedTypeStore.getType()
+      });
+      setTimeout(_ => {
+        FeedActions.resetItems();
+        setTimeout(_ => {
+          ApiUtil.fetchItems({ sort: this.state.type });
+        }, 0);
+      }, 0);
+    });
+    ApiUtil.fetchItems({ sort: this.state.type });
   }
 
   componentWillUnmount() {
     this.feedToken.remove();
+    this.feedTypeToken.remove();
   }
 
   _handleScrollLoad() {
@@ -36,9 +52,11 @@ class Feed extends React.Component {
   render() {
     return (
       <div>
-        <FeedList items={this.state.items}
-          onScrollLoad={this._handleScrollLoad.bind(this)}
-        />
+        <div className="feed">
+          <FeedList items={this.state.items}
+            onScrollLoad={this._handleScrollLoad.bind(this)}
+            />
+        </div>
       </div>
     )
   }

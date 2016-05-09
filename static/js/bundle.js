@@ -7885,6 +7885,10 @@
 	
 	var _reactRouter = __webpack_require__(465);
 	
+	var _nav = __webpack_require__(578);
+	
+	var _nav2 = _interopRequireDefault(_nav);
+	
 	var _feed = __webpack_require__(526);
 	
 	var _feed2 = _interopRequireDefault(_feed);
@@ -7915,15 +7919,7 @@
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'nav' },
-	          _react2.default.createElement(
-	            'h1',
-	            null,
-	            'QuickFeed'
-	          )
-	        ),
+	        _react2.default.createElement(_nav2.default, null),
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'content' },
@@ -33465,9 +33461,17 @@
 	
 	var _store2 = _interopRequireDefault(_store);
 	
+	var _feedTypeStore = __webpack_require__(577);
+	
+	var _feedTypeStore2 = _interopRequireDefault(_feedTypeStore);
+	
 	var _feedList = __webpack_require__(555);
 	
 	var _feedList2 = _interopRequireDefault(_feedList);
+	
+	var _actions = __webpack_require__(531);
+	
+	var _actions2 = _interopRequireDefault(_actions);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -33487,7 +33491,8 @@
 	
 	    _this.state = {
 	      items: _store2.default.all(),
-	      meta: _store2.default.getMeta()
+	      meta: _store2.default.getMeta(),
+	      type: _feedTypeStore2.default.getType()
 	    };
 	    return _this;
 	  }
@@ -33503,12 +33508,25 @@
 	          meta: _store2.default.getMeta()
 	        });
 	      });
-	      _apiUtil2.default.fetchItems();
+	
+	      this.feedTypeToken = _feedTypeStore2.default.addListener(function (_) {
+	        _this2.setState({
+	          type: _feedTypeStore2.default.getType()
+	        });
+	        setTimeout(function (_) {
+	          _actions2.default.resetItems();
+	          setTimeout(function (_) {
+	            _apiUtil2.default.fetchItems({ sort: _this2.state.type });
+	          }, 0);
+	        }, 0);
+	      });
+	      _apiUtil2.default.fetchItems({ sort: this.state.type });
 	    }
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
 	      this.feedToken.remove();
+	      this.feedTypeToken.remove();
 	    }
 	  }, {
 	    key: '_handleScrollLoad',
@@ -33523,9 +33541,13 @@
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        _react2.default.createElement(_feedList2.default, { items: this.state.items,
-	          onScrollLoad: this._handleScrollLoad.bind(this)
-	        })
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'feed' },
+	          _react2.default.createElement(_feedList2.default, { items: this.state.items,
+	            onScrollLoad: this._handleScrollLoad.bind(this)
+	          })
+	        )
 	      );
 	    }
 	  }]);
@@ -34526,6 +34548,13 @@
 	    _dispatcher2.default.dispatch({
 	      actionType: _constants2.default.RESET_ITEMS
 	    });
+	  },
+	
+	  receiveType: function receiveType(type) {
+	    _dispatcher2.default.dispatch({
+	      actionType: _constants2.default.RECEIVE_TYPE,
+	      type: type
+	    });
 	  }
 	};
 
@@ -34862,7 +34891,8 @@
 	});
 	exports.default = {
 	  RECEIVE_ITEMS: 'RECEIVE_ITEMS',
-	  RESET_ITEMS: 'RESET_ITEMS'
+	  RESET_ITEMS: 'RESET_ITEMS',
+	  RECEIVE_TYPE: 'RECEIVE_TYPE'
 	};
 
 /***/ },
@@ -41653,29 +41683,37 @@
 	
 	    _this.shouldAnimate = false;
 	    _this.hasRunScrollLoad = false;
-	    _this.renderedItems = {};
 	    return _this;
 	  }
 	
 	  _createClass(Infinite, [{
+	    key: '_resetItems',
+	    value: function _resetItems() {
+	      this.renderedItems = {};
+	      this.hasRunScrollLoad = false;
+	
+	      var infinite = _reactDom2.default.findDOMNode(this.refs.infinite);
+	      if (this.container) {
+	        infinite.removeChild(this.container);
+	      }
+	      this.container = document.createElement('div');
+	      infinite.appendChild(this.container);
+	    }
+	  }, {
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
-	      this.shouldAnimate = true;
-	      this.hasRunScrollLoad = false;
-	      this.renderedItems = {};
+	      this._resetItems();
 	
 	      // Add animation frame for quick scroll checks
+	      this.shouldAnimate = true;
 	      this.handleAnimation = this._handleAnimation.bind(this);
 	      window.requestAnimationFrame(this.handleAnimation);
-	
-	      // Generate the initial elements
-	      var container = _reactDom2.default.findDOMNode(this.refs.infinite);
 	
 	      for (var i = 0; i < this.props.items.length; ++i) {
 	        var item = this.props.items[i];
 	        var data = this.props.setItem(item);
 	        this.renderedItems[item.id] = data;
-	        container.appendChild(data.element);
+	        this.container.appendChild(data.element);
 	      }
 	    }
 	  }, {
@@ -41685,14 +41723,14 @@
 	      this.renderedItems = {};
 	    }
 	  }, {
-	    key: 'componentWillReceiveProps',
-	    value: function componentWillReceiveProps(newProps) {}
-	  }, {
 	    key: 'componentDidUpdate',
 	    value: function componentDidUpdate() {
-	      // Items have changed
-	      var container = _reactDom2.default.findDOMNode(this.refs.infinite);
+	      // Items have been wiped
+	      if (!this.props.items || this.props.items.length === 0) {
+	        this._resetItems();
+	      }
 	
+	      // Add new items
 	      var newAdded = false;
 	      for (var i = 0; i < this.props.items.length; ++i) {
 	        var item = this.props.items[i];
@@ -41701,7 +41739,7 @@
 	          newAdded = true;
 	          var data = this.props.setItem(item);
 	          this.renderedItems[item.id] = data;
-	          container.appendChild(data.element);
+	          this.container.appendChild(data.element);
 	        }
 	      }
 	
@@ -41713,8 +41751,9 @@
 	    key: '_handleAnimation',
 	    value: function _handleAnimation() {
 	      if (this.shouldAnimate) {
+	        var hasItems = this.props.items && this.props.items.length > 0;
 	        // Check if the page should load more items
-	        if (!this.hasRunScrollLoad) {
+	        if (!this.hasRunScrollLoad && hasItems) {
 	          var container = _reactDom2.default.findDOMNode(this.refs.infinite);
 	          var bottom = window.pageYOffset || document.documentElement.scrollTop;
 	          bottom += window.innerHeight;
@@ -41760,6 +41799,171 @@
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 563 */,
+/* 564 */,
+/* 565 */,
+/* 566 */,
+/* 567 */,
+/* 568 */,
+/* 569 */,
+/* 570 */,
+/* 571 */,
+/* 572 */,
+/* 573 */,
+/* 574 */,
+/* 575 */,
+/* 576 */,
+/* 577 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _utils = __webpack_require__(538);
+	
+	var _dispatcher = __webpack_require__(532);
+	
+	var _dispatcher2 = _interopRequireDefault(_dispatcher);
+	
+	var _constants = __webpack_require__(536);
+	
+	var _constants2 = _interopRequireDefault(_constants);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var FeedTypeStore = new _utils.Store(_dispatcher2.default);
+	
+	var _type = 'default';
+	
+	FeedTypeStore.getType = function () {
+	  return _type;
+	};
+	
+	FeedTypeStore.__onDispatch = function (payload) {
+	  switch (payload.actionType) {
+	    case _constants2.default.RECEIVE_TYPE:
+	      _type = payload.type;
+	      FeedTypeStore.__emitChange();
+	      break;
+	  }
+	};
+	
+	exports.default = FeedTypeStore;
+
+/***/ },
+/* 578 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(299);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _actions = __webpack_require__(531);
+	
+	var _actions2 = _interopRequireDefault(_actions);
+	
+	var _reactRouter = __webpack_require__(465);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Nav = function (_React$Component) {
+	  _inherits(Nav, _React$Component);
+	
+	  function Nav() {
+	    _classCallCheck(this, Nav);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Nav).apply(this, arguments));
+	  }
+	
+	  _createClass(Nav, [{
+	    key: '_handleTypeClick',
+	    value: function _handleTypeClick(type) {
+	      return function (e) {
+	        e.preventDefault();
+	        _actions2.default.receiveType(type);
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'nav group' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'nav-header' },
+	          _react2.default.createElement(
+	            'h1',
+	            null,
+	            _react2.default.createElement(
+	              _reactRouter.Link,
+	              { to: '/' },
+	              'QuickFeed'
+	            )
+	          )
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'nav-sort' },
+	          _react2.default.createElement(
+	            'ul',
+	            null,
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#', onClick: this._handleTypeClick('default') },
+	                'Latest'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#', onClick: this._handleTypeClick('likes') },
+	                'Most Liked'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#', onClick: this._handleTypeClick('comments') },
+	                'Most Commented'
+	              )
+	            )
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Nav;
+	}(_react2.default.Component);
+	
+	exports.default = Nav;
 
 /***/ }
 /******/ ]);

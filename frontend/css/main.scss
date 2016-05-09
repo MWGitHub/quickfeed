@@ -1,4 +1,77 @@
+$nav-background: #000;
+
+body {
+  font-family: Futura;
+}
+
+.group:after {
+  display: block;
+  content: '';
+  clear: both;
+}
+
+.nav {
+  background-color: $nav-background;
+  color: #f5f5f5;
+  line-height: 1;
+
+  a {
+    display: inline-block;
+  }
+}
+
+.nav-header {
+  float: left;
+
+  h1 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  a {
+    padding: 0.5rem 1rem;
+    color: #f5f5f5;
+    text-decoration: none;
+  }
+}
+
+.nav-sort {
+  margin: 0;
+  float: right;
+  font-size: 1rem;
+
+  ul {
+    margin: 0;
+    list-style: none;
+  }
+
+  li {
+    float: left;
+  }
+
+  a {
+    padding: 0.5rem 1rem;
+    color: #f5f5f5;
+    text-decoration: none;
+
+    &:hover {
+      background-color: lighten($nav-background, 20%);
+    }
+  }
+}
+
 .content {
   max-width: 1040px;
   margin: 0 auto;
+}
+
+.feed {
+  float: left;
+  width: 70%;
+  margin-right: calc(70% - 1rem);
+}
+
+.controls {
+  float: left;
+  width: 30%;
 }

@@ -4,15 +4,14 @@ require('./css/main.scss');
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
+import Nav from './nav/nav';
 import Feed from './feed/feed';
 
 class App extends React.Component {
   render() {
     return (
       <div>
-        <div className="nav">
-          <h1>QuickFeed</h1>
-        </div>
+        <Nav />
         <div className="content">
           {this.props.children}
         </div>

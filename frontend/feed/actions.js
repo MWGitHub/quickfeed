@@ -14,5 +14,12 @@ export default {
     Dispatcher.dispatch({
       actionType: constants.RESET_ITEMS
     });
+  },
+
+  receiveType: function (type) {
+    Dispatcher.dispatch({
+      actionType: constants.RECEIVE_TYPE,
+      type: type
+    });
   }
 };
