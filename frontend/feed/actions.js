@@ -1,13 +1,11 @@
-import Dispatcher from '../dispatcher';
+import Dispatcher from '../dispatcher/dispatcher';
 import constants from './constants';
 
 export default {
-  receiveItems: function (items) {
+  receiveItems: function (items, meta) {
     Dispatcher.dispatch({
       actionType: constants.RECEIVE_ITEMS,
-      meta: {
-        pagination: items.pagination
-      },
+      meta: meta,
       items: items
     });
   },
@@ -15,6 +13,6 @@ export default {
   resetItems: function () {
     Dispatcher.dispatch({
       actionType: constants.RESET_ITEMS
-    })
+    });
   }
-}
+};

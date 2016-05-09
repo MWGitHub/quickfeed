@@ -15,6 +15,7 @@ class FeedResource(object):
         items = FeedItem.all(collection_type, start, count)
         data = {
             'pagination': {
+                'next_url': '/api/feed/?sort=%s&start=%s&count=%s' % (collection_type, start + count, count),
                 'sort': collection_type,
                 'start': start,
                 'next_start': start + count,

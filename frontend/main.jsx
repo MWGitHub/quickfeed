@@ -27,7 +27,7 @@ const router = (
       <IndexRoute component={Feed} />
     </Route>
   </Router>
-)
+);
 
 document.addEventListener('DOMContentLoaded', _ => {
   ReactDOM.render(router, document.getElementById('main'));

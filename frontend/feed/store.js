@@ -9,7 +9,15 @@ let _meta = {};
 
 function receiveItems(items, meta) {
   _meta = meta;
-  _items = _items.concat(items);)
+  _items = _items.concat(items);
+}
+
+FeedStore.all = function () {
+  return _items.slice();
+}
+
+FeedStore.getMeta = function () {
+  return Object.assign({}, _meta);
 }
 
 FeedStore.__onDispatch = function (payload) {
