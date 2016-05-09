@@ -14,6 +14,9 @@ class Infinite extends React.Component {
     this.hasRunScrollLoad = false;
 
     const infinite = ReactDOM.findDOMNode(this.refs.infinite);
+    // Scroll to the top of the element
+    window.scrollTo(0, infinite.offsetTop);
+
     if (this.container) {
       infinite.removeChild(this.container);
     }
@@ -94,7 +97,7 @@ class Infinite extends React.Component {
   }
 }
 Infinite.defaultProps = {
-  bottomOffset: 200
+  bottomOffset: 300
 }
 
 export default Infinite;

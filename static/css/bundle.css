@@ -363,6 +363,9 @@ textarea {
   /* 1 */
   font: inherit;
   /* 2 */ }
+html {
+  overflow-y: scroll; }
+
 body {
   font-family: Futura; }
 
@@ -372,6 +375,10 @@ body {
   clear: both; }
 
 .nav {
+  position: fixed;
+  z-index: 1000;
+  width: 100%;
+  top: 0;
   background-color: #000;
   color: #f5f5f5;
   line-height: 1; }
@@ -405,16 +412,39 @@ body {
       background-color: #333333; }
 
 .content {
-  max-width: 1040px;
-  margin: 0 auto; }
+  max-width: 600px;
+  margin: 3rem auto 1rem auto; }
 
 .feed {
-  float: left;
-  width: 70%;
+  text-align: center;
+  width: 100%;
   margin-right: calc(70% - 1rem); }
 
-.controls {
+.item {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #ddd; }
+  .item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0; }
+
+.item-caption {
+  text-align: left;
+  margin: 0 0 0.5rem 0; }
+
+.item-content-wrapper {
+  margin: 0; }
+
+.item-content {
+  width: 100%;
+  height: auto; }
+
+.item-stats p {
+  margin: 0 0.5rem 0 0;
+  display: inline-block;
+  font-size: 0.8rem;
   float: left;
-  width: 30%; }
+  color: #999; }
 
 /*# sourceMappingURL=bundle.css.map*/

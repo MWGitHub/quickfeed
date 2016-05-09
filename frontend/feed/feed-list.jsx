@@ -1,47 +1,18 @@
 import React from 'react';
 import FeedItem from './feed-item';
 import Infinite from '../infinite/infinite';
+import moment from 'moment';
+
+const IMAGE_TYPE = 'image';
+const VIDEO_TYPE = 'video';
 
 class FeedList extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  _calculateHeights() {
-    // Create an element outside the screen matching the feed item
-    let body = document.getElementsByTagName('body')[0];
-    let container = document.createElement('div');
-    body.appendChild(container);
-
-    let caption = document.createElement('p');
-    container.appendChild(caption);
-
-    let line = document.createElement('p');
-    line.innerHTML = '0';
-    container.appendChild(line);
-    line = document.createElement('p');
-    line.innerHTML = '0';
-    container.appendChild(line);
-
-    let content = document.createElement('div');
-    container.appendChild(content);
-
-
-    let heights = [];
-    for (let i = 0; i < this.props.items.length; ++i) {
-      let item = this.props.items[i];
-      let height = 0;
-
-      caption.innerHTML = item.caption;
-
-      content.style.width = '1px';
-      content.style.height = (4 + parseInt(item.images_standard_height)) + 'px';
-
-      height = container.getBoundingClientRect().height;
-      heights.push(height);
-    }
-
-    return heights;
+  _parseString(string) {
+    return string;
   }
 
   _handleSetBlueprint(item, element) {
@@ -50,8 +21,11 @@ class FeedList extends React.Component {
       return element;
     } else {
       let container = document.createElement('div');
+      container.className = 'item';
 
       let caption = document.createElement('p');
+      caption.className = 'item-caption';
+      caption.innerHTML = item.caption;
       container.appendChild(caption);
 
       let line = document.createElement('p');
@@ -61,10 +35,10 @@ class FeedList extends React.Component {
       line.innerHTML = '0';
       container.appendChild(line);
 
-      let imageWrapper = document.createElement('p');
-      container.appendChild(imageWrapper);
+      let contentWrapper = document.createElement('p');
+      container.appendChild(contentWrapper);
       let content = document.createElement('img');
-      imageWrapper.appendChild(content);
+      contentWrapper.appendChild(content);
 
       return {
         element: container,
@@ -75,34 +49,69 @@ class FeedList extends React.Component {
     }
   }
 
+  /**
+   * Sets an element's properties or creates a new one.
+   * @param  {Object}  item    the item to use the properties of.
+   * @param  {Object=} element the element to update, create new if none given.
+   * @return {Object}          the updated or created element.
+   */
   _handleSetItem(item, element) {
     if (element) {
       const properties = element.properties;
-      properties.caption.innerHTML = item.caption;
-      properties.comments.innerHTML = item.comments + ' Comments';
-      properties.likes.innerHTML = item.likes + ' Likes';
-      properties.content.setAttribute('src', item.images_standard_url);
+      properties.caption.innerHTML = this._parseString(item.caption);
+      properties.comments.innerHTML = item.comments + ' comments';
+      properties.likes.innerHTML = item.likes + ' likes';
+      properties.time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
+      if (item.type === VIDEO_TYPE) {
+        properties.content.setAttribute('src', item.videos_standard_url);
+        properties.content.setAttribute('controls', '');
+      } else {
+        properties.content.setAttribute('src', item.images_standard_url);
+      }
 
       return element;
     } else {
       let container = document.createElement('div');
+      container.className = 'item';
 
       let caption = document.createElement('p');
-      caption.innerHTML = item.caption;
+      caption.className = 'item-caption';
+      caption.innerHTML = this._parseString(item.caption);
       container.appendChild(caption);
 
-      let comments = document.createElement('p');
-      comments.innerHTML = item.comments + ' Comments';
-      container.appendChild(comments);
-      let likes = document.createElement('p');
-      likes.innerHTML = item.likes + ' Likes';
-      container.appendChild(likes);
+      let contentWrapper = document.createElement('p');
+      contentWrapper.className = 'item-content-wrapper';
+      container.appendChild(contentWrapper);
+      let content = null;
+      if (item.type === VIDEO_TYPE) {
+        content = document.createElement('video');
+        content.setAttribute('src', item.videos_standard_url);
+        content.setAttribute('controls', '');
+      } else {
+        content = document.createElement('img');
+        content.setAttribute('src', item.images_standard_url);
+      }
+      content.className = 'item-content';
+      contentWrapper.appendChild(content);
 
-      let imageWrapper = document.createElement('p');
-      container.appendChild(imageWrapper);
-      let content = document.createElement('img');
-      content.setAttribute('src', item.images_standard_url);
-      imageWrapper.appendChild(content);
+      let statsWrapper = document.createElement('div');
+      statsWrapper.className = 'item-stats group';
+      container.appendChild(statsWrapper);
+      let comments = document.createElement('p');
+      comments.innerHTML = item.comments + ' comments';
+      statsWrapper.appendChild(comments);
+      let spacer = document.createElement('p');
+      spacer.innerHTML = '&middot;';
+      statsWrapper.appendChild(spacer);
+      let likes = document.createElement('p');
+      likes.innerHTML = item.likes + ' likes';
+      statsWrapper.appendChild(likes);
+      spacer = document.createElement('p');
+      spacer.innerHTML = '&middot;';
+      statsWrapper.appendChild(spacer);
+      let time = document.createElement('p');
+      time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
+      statsWrapper.appendChild(time);
 
       return {
         element: container,
@@ -110,14 +119,15 @@ class FeedList extends React.Component {
           caption: caption,
           comments: comments,
           likes: likes,
-          content: content
+          time: time,
+          content: content,
         }
       };
     }
   }
 
   render() {
-    // Show loading page when nothing is loaded
+    // Show loading spinner when nothing is loaded
     if (!this.props.items || this.props.items.length === 0) {
       return (
         <div>Loading...</div>
@@ -127,8 +137,8 @@ class FeedList extends React.Component {
     return (
       <div>
         <Infinite items={this.props.items} onScroll={this.props.onInfiniteLoad}
-          setBlueprint={this._handleSetBlueprint}
-          setItem={this._handleSetItem}
+          setBlueprint={this._handleSetBlueprint.bind(this)}
+          setItem={this._handleSetItem.bind(this)}
           onScrollLoad={this.props.onScrollLoad}
           />
       </div>
