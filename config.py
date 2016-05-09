@@ -1,8 +1,8 @@
 import os
 
 config = {
-    'ig_client_id': os.environ['ig_client_id'],
-    'ig_client_secret': os.environ['ig_client_secret'],
-    'ig_token': os.environ['ig_token'],
-    'quickfeed_user': os.environ['quickfeed_user']
+    'ig_client_id': os.environ.get('ig_client_id') or 'none',
+    'ig_client_secret': os.environ.get('ig_client_secret') or 'none',
+    'ig_token': os.environ.get('ig_token') or 'none',
+    'quickfeed_user': os.environ.get('quickfeed_user') or 'none'
 }

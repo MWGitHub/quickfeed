@@ -1,6 +1,7 @@
 $nav-background: #000;
 $color-stats: #999;
 $separator-color: #ddd;
+$tag-color: #3281bb;
 
 html {
   overflow-y: scroll;
@@ -53,6 +54,7 @@ body {
   ul {
     margin: 0;
     list-style: none;
+    padding: 0;
   }
 
   li {
@@ -73,6 +75,7 @@ body {
 .content {
   max-width: 600px;
   margin: 3rem auto 1rem auto;
+  padding: 1rem;
 }
 
 .feed {
@@ -96,6 +99,15 @@ body {
 .item-caption {
   text-align: left;
   margin: 0 0 0.5rem 0;
+
+  a {
+    text-decoration: none;
+    color: $tag-color;
+
+    &:hover {
+      color: darken($tag-color, 10%);
+    }
+  }
 }
 
 .item-content-wrapper {
@@ -114,5 +126,27 @@ body {
     font-size: 0.8rem;
     float: left;
     color: $color-stats;
+  }
+}
+
+@media (max-width: 600px) {
+  .nav-header {
+    clear: both;
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-sort {
+    clear: both;
+    width: 100%;
+    text-align: center;
+
+    ul {
+      width: 100%;
+    }
+
+    li {
+      width: 100%;
+    }
   }
 }

@@ -17,7 +17,7 @@ class Nav extends React.Component {
           <h1><Link to='/'>QuickFeed</Link></h1>
         </div>
         <div className="nav-sort">
-          <ul>
+          <ul className="group">
             <li>
               <a href="#" onClick={this._handleTypeClick('default')}>Latest</a>
             </li>

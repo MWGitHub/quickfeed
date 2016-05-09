@@ -12,7 +12,17 @@ class FeedList extends React.Component {
   }
 
   _parseString(string) {
-    return string;
+    let output = '';
+    output = string.replace(/(#[^#@ ]+)/g, match => {
+      const tag = match.substr(1);
+      return `<a href="https://www.instagram.com/explore/tags/${tag}/">${match}</a>`;
+    });
+
+    output = output.replace(/(@[^#@ ]+)/g, match => {
+      const tag = match.substr(1);
+      return `<a href="https://www.instagram.com/${tag}/">${match}</a>`;
+    });
+    return output;
   }
 
   _handleSetBlueprint(item, element) {
