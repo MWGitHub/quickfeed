@@ -12,6 +12,8 @@ class Infinite extends React.Component {
   _resetItems() {
     this.renderedItems = {};
     this.hasRunScrollLoad = false;
+    this.elementPool = {};
+    this.itemHeights = [];
 
     const infinite = ReactDOM.findDOMNode(this.refs.infinite);
     // Scroll to the top of the element
@@ -24,6 +26,31 @@ class Infinite extends React.Component {
     infinite.appendChild(this.container);
   }
 
+  /**
+   * Retrieves a free element or none if all taken
+   */
+  _getFreeElement(item) {
+    let type = item.type;
+    if (!this.elementPool[type]) this.elementPool[type] = [];
+    let pool = this.elementPool[type];
+
+    if (pool.length === 0) {
+      return null;
+    } else {
+      return this.elementPool.pop();
+    }
+  }
+
+  _recycleElement(item) {
+    let type = item.type;
+    if (!this.elementPool[type]) this.elementPool[type] = [];
+    let pool = this.elementPool[type];
+
+    if (this.renderedItems[item.id]) {
+      pool.push(item);
+    }
+  }
+
   componentDidMount() {
     this._resetItems();
 
@@ -34,7 +61,7 @@ class Infinite extends React.Component {
 
     for (let i = 0; i < this.props.items.length; ++i) {
       let item = this.props.items[i];
-      let data = this.props.setItem(item);
+      let data = this.props.setItem(item, this._getFreeElement(item));
       this.renderedItems[item.id] = data;
       this.container.appendChild(data.element);
     }
@@ -58,7 +85,7 @@ class Infinite extends React.Component {
       // console.log(this.renderedItems[item.id], item.id);
       if (!this.renderedItems[item.id]) {
         newAdded = true;
-        let data = this.props.setItem(item);
+        let data = this.props.setItem(item, this._getFreeElement(item));
         this.renderedItems[item.id] = data;
         this.container.appendChild(data.element);
       }

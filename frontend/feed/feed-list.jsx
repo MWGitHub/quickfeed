@@ -74,7 +74,6 @@ class FeedList extends React.Component {
       properties.time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
       if (item.type === VIDEO_TYPE) {
         properties.content.setAttribute('src', item.videos_standard_url);
-        properties.content.setAttribute('controls', '');
       } else {
         properties.content.setAttribute('src', item.images_standard_url);
       }
