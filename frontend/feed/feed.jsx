@@ -12,7 +12,8 @@ class Feed extends React.Component {
     this.state = {
       items: FeedStore.all(),
       meta: FeedStore.getMeta(),
-      type: FeedTypeStore.getType()
+      type: FeedTypeStore.getType(),
+      isLoading: true
     };
   }
 
@@ -29,13 +30,19 @@ class Feed extends React.Component {
         type: FeedTypeStore.getType()
       });
       setTimeout(_ => {
+        this.setState({ isLoading: true });
         FeedActions.resetItems();
         setTimeout(_ => {
-          ApiUtil.fetchItems({ sort: this.state.type });
+            ApiUtil.fetchItems({ sort: this.state.type }, _ => {
+              this.setState({ isLoading: false });
+            });
         }, 0);
       }, 0);
     });
-    ApiUtil.fetchItems({ sort: this.state.type });
+
+    ApiUtil.fetchItems({ sort: this.state.type }, _ => {
+      this.setState({ isLoading: false });
+    });
   }
 
   componentWillUnmount() {
@@ -45,16 +52,40 @@ class Feed extends React.Component {
 
   _handleScrollLoad() {
     let meta = this.state.meta;
-    ApiUtil.fetchItems({ url: meta.next_url });
+    this.setState({ isLoading: true });
+    ApiUtil.fetchItems({ url: meta.next_url }, _ => {
+      this.setState({ isLoading: false });
+    });
   }
 
   render() {
+    let spinner = '';
+    if (this.state.isLoading) {
+      spinner = (
+        <div className="sk-fading-circle">
+          <div className="sk-circle1 sk-circle"></div>
+          <div className="sk-circle2 sk-circle"></div>
+          <div className="sk-circle3 sk-circle"></div>
+          <div className="sk-circle4 sk-circle"></div>
+          <div className="sk-circle5 sk-circle"></div>
+          <div className="sk-circle6 sk-circle"></div>
+          <div className="sk-circle7 sk-circle"></div>
+          <div className="sk-circle8 sk-circle"></div>
+          <div className="sk-circle9 sk-circle"></div>
+          <div className="sk-circle10 sk-circle"></div>
+          <div className="sk-circle11 sk-circle"></div>
+          <div className="sk-circle12 sk-circle"></div>
+        </div>
+      );
+    }
+
     return (
       <div>
         <div className="feed">
           <FeedList items={this.state.items}
             onScrollLoad={this._handleScrollLoad.bind(this)}
             />
+          {spinner}
         </div>
       </div>
     )

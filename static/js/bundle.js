@@ -33982,7 +33982,8 @@
 	    _this.state = {
 	      items: _store2.default.all(),
 	      meta: _store2.default.getMeta(),
-	      type: _feedTypeStore2.default.getType()
+	      type: _feedTypeStore2.default.getType(),
+	      isLoading: true
 	    };
 	    return _this;
 	  }
@@ -34004,13 +34005,19 @@
 	          type: _feedTypeStore2.default.getType()
 	        });
 	        setTimeout(function (_) {
+	          _this2.setState({ isLoading: true });
 	          _actions2.default.resetItems();
 	          setTimeout(function (_) {
-	            _apiUtil2.default.fetchItems({ sort: _this2.state.type });
+	            _apiUtil2.default.fetchItems({ sort: _this2.state.type }, function (_) {
+	              _this2.setState({ isLoading: false });
+	            });
 	          }, 0);
 	        }, 0);
 	      });
-	      _apiUtil2.default.fetchItems({ sort: this.state.type });
+	
+	      _apiUtil2.default.fetchItems({ sort: this.state.type }, function (_) {
+	        _this2.setState({ isLoading: false });
+	      });
 	    }
 	  }, {
 	    key: 'componentWillUnmount',
@@ -34021,12 +34028,37 @@
 	  }, {
 	    key: '_handleScrollLoad',
 	    value: function _handleScrollLoad() {
+	      var _this3 = this;
+	
 	      var meta = this.state.meta;
-	      _apiUtil2.default.fetchItems({ url: meta.next_url });
+	      this.setState({ isLoading: true });
+	      _apiUtil2.default.fetchItems({ url: meta.next_url }, function (_) {
+	        _this3.setState({ isLoading: false });
+	      });
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var spinner = '';
+	      if (this.state.isLoading) {
+	        spinner = _react2.default.createElement(
+	          'div',
+	          { className: 'sk-fading-circle' },
+	          _react2.default.createElement('div', { className: 'sk-circle1 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle2 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle3 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle4 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle5 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle6 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle7 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle8 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle9 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle10 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle11 sk-circle' }),
+	          _react2.default.createElement('div', { className: 'sk-circle12 sk-circle' })
+	        );
+	      }
+	
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -34035,7 +34067,8 @@
 	          { className: 'feed' },
 	          _react2.default.createElement(_feedList2.default, { items: this.state.items,
 	            onScrollLoad: this._handleScrollLoad.bind(this)
-	          })
+	          }),
+	          spinner
 	        )
 	      );
 	    }
@@ -34071,7 +34104,7 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	exports.default = {
-	  fetchItems: function fetchItems(options) {
+	  fetchItems: function fetchItems(options, callback) {
 	    // Set default options
 	    var opts = Object.assign({
 	      sort: 'default',
@@ -34106,10 +34139,12 @@
 	            case 2:
 	              req = _context.sent;
 	
+	
+	              callback && callback(req);
 	              _actions2.default.receiveItems(req.items, req.pagination);
 	              return _context.abrupt('return', req);
 	
-	            case 5:
+	            case 6:
 	            case 'end':
 	              return _context.stop();
 	          }

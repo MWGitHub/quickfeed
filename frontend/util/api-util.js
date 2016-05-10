@@ -3,7 +3,7 @@ import co from 'co';
 import FeedActions from '../feed/actions';
 
 export default {
-  fetchItems: function (options) {
+  fetchItems: function (options, callback) {
     // Set default options
     let opts = Object.assign({
       sort: 'default',
@@ -28,6 +28,8 @@ export default {
         method: 'get',
         data: data
       });
+
+      callback && callback(req);
       FeedActions.receiveItems(req.items, req.pagination)
       return req;
     });
