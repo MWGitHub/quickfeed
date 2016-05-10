@@ -119,6 +119,7 @@ class Infinite extends React.Component {
     if (this.lastScroll === top) return;
     this.lastScroll = top;
 
+    top = 0;
     let bottom = top + window.innerHeight;
 
     for (let key in this.renderedPieces) {
@@ -134,7 +135,6 @@ class Infinite extends React.Component {
         }
       } else {
         if (!piece.isVisible) {
-          console.log('reshow');
           this._setItem(piece.item, piece);
         }
       }

@@ -41980,6 +41980,7 @@
 	      if (this.lastScroll === top) return;
 	      this.lastScroll = top;
 	
+	      top = 0;
 	      var bottom = top + window.innerHeight;
 	
 	      for (var key in this.renderedPieces) {
@@ -41995,7 +41996,6 @@
 	          }
 	        } else {
 	          if (!piece.isVisible) {
-	            console.log('reshow');
 	            this._setItem(piece.item, piece);
 	          }
 	        }
