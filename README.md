@@ -3,15 +3,11 @@
 
 QuickFeed is a feed displayer with performance in mind. Navigating through the site is smooth and responsive even on slower hardware.
 
-Check out a demo at [www.example.com](https://www.example.com/)
+Check out a demo at [quickfeed.mwguy.com](http://quickfeed.mwguy.com/)
 
 ###Welcome View:
 
 ![welcome]
-
-###Feed View:
-
-![feed]
 
 ###Installation:
 
@@ -73,12 +69,6 @@ Adding is O(log(n)) and is run on all three sorted sets when an item is saved.
 Removal is also O(log(n)) and can be run when an item is deleted or if one wants to limit the number of items in the set.
 
 
-Add specific technical details for the code here.
-
-```
-put code here
-```
-
 ###Features
 * Fetches items from the Instagram API
 * Quick retrieval of sorted items
@@ -89,4 +79,3 @@ put code here
 
 
 [welcome]: ./docs/images/welcome.png
-[feed]: ./docs/images/feed.png
