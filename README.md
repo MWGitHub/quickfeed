@@ -13,9 +13,22 @@ Check out a demo at [www.example.com](https://www.example.com/)
 
 ![feed]
 
-###Usage:
+###Installation:
 
-Add usage instructions here
+Requirements for development:
+Python 2.7.11
+Redis
+Node 6.1.0
+
+For development:
+* Clone the repository
+* Inside the folder run the following commands:
+* `pip install -r requirements.txt` to install the python dependencies
+* `gunicorn run:app` to start the api server
+* In another terminal and in the same folder run the following commands:
+* `npm install` to install the js dependencies
+* `npm start` to build the frontend files
+* Navigate to http://localhost:8000
 
 ###Technical Details:
 
