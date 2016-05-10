@@ -68,11 +68,72 @@ Having three separate sets allows for quick retrieval without having to sort on 
 Adding is O(log(n)) and is run on all three sorted sets when an item is saved.  
 Removal is also O(log(n)) and can be run when an item is deleted or if one wants to limit the number of items in the set.
 
+####Infinite Scroll
+Items are only fetched when the list is scrolled to the bottom with a buffer in an animation frame for smoother scrolling on mobile devices. This is checked with:
+
+```
+_handleAnimation() {
+    if (this.shouldAnimate) {
+      const hasItems = this.props.items && this.props.items.length > 0;
+      // Check if the page should load more items
+      if (!this.hasRunScrollLoad && hasItems) {
+        const container = ReactDOM.findDOMNode(this.refs.infinite);
+        let bottom = window.pageYOffset || document.documentElement.scrollTop;
+        bottom += window.innerHeight;
+        let elementBottom = container.offsetTop + container.offsetHeight;
+        let space = elementBottom - bottom;
+
+        if (space <= this.props.bottomOffset) {
+          this.hasRunScrollLoad = true;
+          this.props.onScrollLoad();
+        }
+      }
+
+      // Show or hide elements
+      this._checkVisiblity();
+
+      window.requestAnimationFrame(this.handleAnimation);
+    }
+  }
+```
+
+When items are no longer visible the content is no longered rendered. Visibility is checked with:
+
+```
+_checkVisiblity() {
+    let top = window.pageYOffset || document.documentElement.scrollTop;
+    if (this.lastScroll === top) return;
+    this.lastScroll = top;
+
+    top = 0;
+    let bottom = top + window.innerHeight;
+
+    for (let key in this.renderedPieces) {
+      let piece = this.renderedPieces[key];
+      let bounds = piece.element.getBoundingClientRect();
+      let eleTop = bounds.top;
+      let eleBot = bounds.bottom;
+
+      // Recycle element if out of range else show
+      if (eleBot < top || eleTop > bottom) {
+        if (piece.isVisible) {
+          this._recyclePiece(piece);
+        }
+      } else {
+        if (!piece.isVisible) {
+          this._setItem(piece.item, piece);
+        }
+      }
+    }
+  }
+```
 
 ###Features
 * Fetches items from the Instagram API
 * Quick retrieval of sorted items
 * Quick addition of items that are also sorted
+* Smooth infinite scrolling
+* Items that are not visible do not have content rendered
 
 ###To-Do:
 * [ ] Optimize memory usage
