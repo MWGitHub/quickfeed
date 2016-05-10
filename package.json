@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack -w",
-    "build": "NODE_ENV=production webpack -p",
+    "build": "webpack -p",
     "postinstall": "./node_modules/.bin/webpack"
   },
   "repository": {

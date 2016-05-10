@@ -54,7 +54,7 @@ class FeedList extends React.Component {
         properties.content.setAttribute('src', item.images_standard_url);
       }
     }
-    properties.content.style.width = '500px';
+    properties.content.style['max-width'] = '500px';
     properties.content.style.height = (height * ratio) + 'px';
   }
 
