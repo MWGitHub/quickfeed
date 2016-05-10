@@ -34021,7 +34021,6 @@
 	  }, {
 	    key: '_handleScrollLoad',
 	    value: function _handleScrollLoad() {
-	      console.log('inf');
 	      var meta = this.state.meta;
 	      _apiUtil2.default.fetchItems({ url: meta.next_url });
 	    }
@@ -41609,64 +41608,59 @@
 	      return output;
 	    }
 	  }, {
-	    key: '_handleSetBlueprint',
-	    value: function _handleSetBlueprint(item, element) {
-	      if (element) {
-	        element.properties.content.style.height = item.images_standard_height;
-	        return element;
+	    key: '_setItemProperties',
+	    value: function _setItemProperties(item, piece) {
+	      var isDummy = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+	
+	      var properties = piece.properties;
+	      if (isDummy) {
+	        properties.caption.innerHTML = item.caption;
 	      } else {
-	        var container = document.createElement('div');
-	        container.className = 'item';
-	
-	        var caption = document.createElement('p');
-	        caption.className = 'item-caption';
-	        caption.innerHTML = item.caption;
-	        container.appendChild(caption);
-	
-	        var line = document.createElement('p');
-	        line.innerHTML = '0';
-	        container.appendChild(line);
-	        line = document.createElement('p');
-	        line.innerHTML = '0';
-	        container.appendChild(line);
-	
-	        var contentWrapper = document.createElement('p');
-	        container.appendChild(contentWrapper);
-	        var content = document.createElement('img');
-	        contentWrapper.appendChild(content);
-	
-	        return {
-	          element: container,
-	          properties: {
-	            content: content
-	          }
-	        };
-	      }
-	    }
-	
-	    /**
-	     * Sets an element's properties or creates a new one.
-	     * @param  {Object}  item    the item to use the properties of.
-	     * @param  {Object=} element the element to update, create new if none given.
-	     * @return {Object}          the updated or created element.
-	     */
-	
-	  }, {
-	    key: '_handleSetItem',
-	    value: function _handleSetItem(item, element) {
-	      if (element) {
-	        var properties = element.properties;
 	        properties.caption.innerHTML = this._parseString(item.caption);
-	        properties.comments.innerHTML = item.comments + ' comments';
-	        properties.likes.innerHTML = item.likes + ' likes';
-	        properties.time.innerHTML = _moment2.default.unix(parseInt(item.created_time)).fromNow();
+	      }
+	      properties.comments.innerHTML = item.comments + ' comments';
+	      properties.likes.innerHTML = item.likes + ' likes';
+	      properties.time.innerHTML = _moment2.default.unix(parseInt(item.created_time)).fromNow();
+	      // Erase the content if it is a dummy
+	      var ratio = 1;
+	      var height = 1;
+	      if (item.type === VIDEO_TYPE) {
+	        ratio = 500 / parseInt(item.videos_standard_width);
+	        height = parseInt(item.videos_standard_height);
+	      } else {
+	        ratio = 500 / parseInt(item.images_standard_width);
+	        height = parseInt(item.images_standard_height);
+	      }
+	      if (isDummy) {
+	        properties.content.setAttribute('src', '');
+	      } else {
 	        if (item.type === VIDEO_TYPE) {
 	          properties.content.setAttribute('src', item.videos_standard_url);
 	        } else {
 	          properties.content.setAttribute('src', item.images_standard_url);
 	        }
+	      }
+	      properties.content.style.width = '500px';
+	      properties.content.style.height = height * ratio + 'px';
+	    }
 	
-	        return element;
+	    /**
+	     * Sets a piece's properties or creates a new one.
+	     * @param  {Object}  item    the item to use the properties of.
+	     * @param  {Object=} piece   the piece to update, create new if none given.
+	     * @param  {boolean} isDummy true to render a dummy item.
+	     * @return {Object}          the updated or created piece.
+	     */
+	
+	  }, {
+	    key: '_handleSetItem',
+	    value: function _handleSetItem(item, piece) {
+	      var isDummy = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+	
+	      if (piece) {
+	        this._setItemProperties(item, piece, isDummy);
+	
+	        return piece;
 	      } else {
 	        var container = document.createElement('div');
 	        container.className = 'item';
@@ -41710,7 +41704,7 @@
 	        time.innerHTML = _moment2.default.unix(parseInt(item.created_time)).fromNow();
 	        statsWrapper.appendChild(time);
 	
-	        return {
+	        var newPiece = {
 	          element: container,
 	          properties: {
 	            caption: caption,
@@ -41720,6 +41714,10 @@
 	            content: content
 	          }
 	        };
+	
+	        this._setItemProperties(item, newPiece, isDummy);
+	
+	        return newPiece;
 	      }
 	    }
 	  }, {
@@ -41738,7 +41736,6 @@
 	        'div',
 	        null,
 	        _react2.default.createElement(_infinite2.default, { items: this.props.items, onScroll: this.props.onInfiniteLoad,
-	          setBlueprint: this._handleSetBlueprint.bind(this),
 	          setItem: this._handleSetItem.bind(this),
 	          onScrollLoad: this.props.onScrollLoad
 	        })
@@ -41863,12 +41860,29 @@
 	  }
 	
 	  _createClass(Infinite, [{
+	    key: '_setItem',
+	    value: function _setItem(item, piece) {
+	      var workPiece = piece;
+	      if (!piece) {
+	        workPiece = this.props.setItem(item, this._getFreePiece(item));
+	      } else {
+	        this.props.setItem(item, workPiece);
+	      }
+	      workPiece.item = item;
+	      workPiece.isVisible = true;
+	      if (!piece) {
+	        this.renderedPieces[item.id] = workPiece;
+	        this.container.appendChild(workPiece.element);
+	      }
+	    }
+	  }, {
 	    key: '_resetItems',
 	    value: function _resetItems() {
-	      this.renderedItems = {};
+	      this.renderedPieces = {};
 	      this.hasRunScrollLoad = false;
-	      this.elementPool = {};
+	      this.piecePool = {};
 	      this.itemHeights = [];
+	      this.lastScroll = 0;
 	
 	      var infinite = _reactDom2.default.findDOMNode(this.refs.infinite);
 	      // Scroll to the top of the element
@@ -41882,31 +41896,38 @@
 	    }
 	
 	    /**
-	     * Retrieves a free element or none if all taken
+	     * Retrieves a free piece or none if all taken
 	     */
 	
 	  }, {
-	    key: '_getFreeElement',
-	    value: function _getFreeElement(item) {
+	    key: '_getFreePiece',
+	    value: function _getFreePiece(item) {
 	      var type = item.type;
-	      if (!this.elementPool[type]) this.elementPool[type] = [];
-	      var pool = this.elementPool[type];
+	      if (!this.piecePool[type]) this.piecePool[type] = [];
+	      var pool = this.piecePool[type];
 	
 	      if (pool.length === 0) {
 	        return null;
 	      } else {
-	        return this.elementPool.pop();
+	        return pool.pop();
 	      }
 	    }
 	  }, {
-	    key: '_recycleElement',
-	    value: function _recycleElement(item) {
+	    key: '_recyclePiece',
+	    value: function _recyclePiece(piece) {
+	      var item = piece.item;
 	      var type = item.type;
-	      if (!this.elementPool[type]) this.elementPool[type] = [];
-	      var pool = this.elementPool[type];
+	      if (!this.piecePool[type]) this.piecePool[type] = [];
+	      var pool = this.piecePool[type];
 	
-	      if (this.renderedItems[item.id]) {
-	        pool.push(item);
+	      if (this.renderedPieces[item.id]) {
+	        var _piece = this.renderedPieces[item.id];
+	        _piece.isVisible = false;
+	        this.props.setItem(item, _piece, true);
+	        // let element = piece.element;
+	        // element.parentNode.removeChild(element);
+	        // delete this.renderedPieces[item.id];
+	        // pool.push(piece);
 	      }
 	    }
 	  }, {
@@ -41921,16 +41942,14 @@
 	
 	      for (var i = 0; i < this.props.items.length; ++i) {
 	        var item = this.props.items[i];
-	        var data = this.props.setItem(item, this._getFreeElement(item));
-	        this.renderedItems[item.id] = data;
-	        this.container.appendChild(data.element);
+	        this._setItem(item);
 	      }
 	    }
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
 	      this.shouldAnimate = false;
-	      this.renderedItems = {};
+	      this.renderedPieces = {};
 	    }
 	  }, {
 	    key: 'componentDidUpdate',
@@ -41944,17 +41963,42 @@
 	      var newAdded = false;
 	      for (var i = 0; i < this.props.items.length; ++i) {
 	        var item = this.props.items[i];
-	        // console.log(this.renderedItems[item.id], item.id);
-	        if (!this.renderedItems[item.id]) {
+	        if (!this.renderedPieces[item.id]) {
 	          newAdded = true;
-	          var data = this.props.setItem(item, this._getFreeElement(item));
-	          this.renderedItems[item.id] = data;
-	          this.container.appendChild(data.element);
+	          this._setItem(item);
 	        }
 	      }
 	
 	      if (newAdded) {
 	        this.hasRunScrollLoad = false;
+	      }
+	    }
+	  }, {
+	    key: '_checkVisiblity',
+	    value: function _checkVisiblity() {
+	      var top = window.pageYOffset || document.documentElement.scrollTop;
+	      if (this.lastScroll === top) return;
+	      this.lastScroll = top;
+	
+	      var bottom = top + window.innerHeight;
+	
+	      for (var key in this.renderedPieces) {
+	        var piece = this.renderedPieces[key];
+	        var bounds = piece.element.getBoundingClientRect();
+	        var eleTop = bounds.top;
+	        var eleBot = bounds.bottom;
+	
+	        // Recycle element if out of range else show
+	        if (eleBot < top || eleTop > bottom) {
+	          if (piece.isVisible) {
+	            this._recyclePiece(piece);
+	          }
+	        } else {
+	          if (!piece.isVisible) {
+	            console.log('reshow');
+	            this._setItem(piece.item, piece);
+	          }
+	        }
 	      }
 	    }
 	  }, {
@@ -41976,13 +42020,21 @@
 	          }
 	        }
 	
+	        // Show or hide elements
+	        this._checkVisiblity();
+	
 	        window.requestAnimationFrame(this.handleAnimation);
 	      }
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement('div', { ref: 'infinite' });
+	      return _react2.default.createElement(
+	        'div',
+	        { ref: 'infinite' },
+	        _react2.default.createElement('div', { ref: 'spacerTop' }),
+	        _react2.default.createElement('div', { ref: 'spacerBottom' })
+	      );
 	    }
 	  }]);
 	

@@ -25,60 +25,51 @@ class FeedList extends React.Component {
     return output;
   }
 
-  _handleSetBlueprint(item, element) {
-    if (element) {
-      element.properties.content.style.height = item.images_standard_height;
-      return element;
+  _setItemProperties(item, piece, isDummy=false) {
+    const properties = piece.properties;
+    if (isDummy) {
+      properties.caption.innerHTML = item.caption;
     } else {
-      let container = document.createElement('div');
-      container.className = 'item';
-
-      let caption = document.createElement('p');
-      caption.className = 'item-caption';
-      caption.innerHTML = item.caption;
-      container.appendChild(caption);
-
-      let line = document.createElement('p');
-      line.innerHTML = '0';
-      container.appendChild(line);
-      line = document.createElement('p');
-      line.innerHTML = '0';
-      container.appendChild(line);
-
-      let contentWrapper = document.createElement('p');
-      container.appendChild(contentWrapper);
-      let content = document.createElement('img');
-      contentWrapper.appendChild(content);
-
-      return {
-        element: container,
-        properties: {
-          content: content
-        }
-      };
-    }
-  }
-
-  /**
-   * Sets an element's properties or creates a new one.
-   * @param  {Object}  item    the item to use the properties of.
-   * @param  {Object=} element the element to update, create new if none given.
-   * @return {Object}          the updated or created element.
-   */
-  _handleSetItem(item, element) {
-    if (element) {
-      const properties = element.properties;
       properties.caption.innerHTML = this._parseString(item.caption);
-      properties.comments.innerHTML = item.comments + ' comments';
-      properties.likes.innerHTML = item.likes + ' likes';
-      properties.time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
+    }
+    properties.comments.innerHTML = item.comments + ' comments';
+    properties.likes.innerHTML = item.likes + ' likes';
+    properties.time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
+    // Erase the content if it is a dummy
+    let ratio = 1;
+    let height = 1;
+    if (item.type === VIDEO_TYPE) {
+      ratio = 500 / parseInt(item.videos_standard_width);
+      height = parseInt(item.videos_standard_height);
+    } else {
+      ratio = 500 / parseInt(item.images_standard_width);
+      height = parseInt(item.images_standard_height);
+    }
+    if (isDummy) {
+      properties.content.setAttribute('src', '');
+    } else {
       if (item.type === VIDEO_TYPE) {
         properties.content.setAttribute('src', item.videos_standard_url);
       } else {
         properties.content.setAttribute('src', item.images_standard_url);
       }
+    }
+    properties.content.style.width = '500px';
+    properties.content.style.height = (height * ratio) + 'px';
+  }
 
-      return element;
+  /**
+   * Sets a piece's properties or creates a new one.
+   * @param  {Object}  item    the item to use the properties of.
+   * @param  {Object=} piece   the piece to update, create new if none given.
+   * @param  {boolean} isDummy true to render a dummy item.
+   * @return {Object}          the updated or created piece.
+   */
+  _handleSetItem(item, piece, isDummy=false) {
+    if (piece) {
+      this._setItemProperties(item, piece, isDummy);
+
+      return piece;
     } else {
       let container = document.createElement('div');
       container.className = 'item';
@@ -122,7 +113,7 @@ class FeedList extends React.Component {
       time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
       statsWrapper.appendChild(time);
 
-      return {
+      let newPiece = {
         element: container,
         properties: {
           caption: caption,
@@ -132,6 +123,10 @@ class FeedList extends React.Component {
           content: content,
         }
       };
+
+      this._setItemProperties(item, newPiece, isDummy);
+
+      return newPiece;
     }
   }
 
@@ -146,7 +141,6 @@ class FeedList extends React.Component {
     return (
       <div>
         <Infinite items={this.props.items} onScroll={this.props.onInfiniteLoad}
-          setBlueprint={this._handleSetBlueprint.bind(this)}
           setItem={this._handleSetItem.bind(this)}
           onScrollLoad={this.props.onScrollLoad}
           />

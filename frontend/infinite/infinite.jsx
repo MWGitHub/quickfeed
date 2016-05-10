@@ -9,11 +9,27 @@ class Infinite extends React.Component {
     this.hasRunScrollLoad = false;
   }
 
+  _setItem(item, piece) {
+    let workPiece = piece;
+    if (!piece) {
+      workPiece = this.props.setItem(item, this._getFreePiece(item));
+    } else {
+      this.props.setItem(item, workPiece);
+    }
+    workPiece.item = item;
+    workPiece.isVisible = true;
+    if (!piece) {
+      this.renderedPieces[item.id] = workPiece;
+      this.container.appendChild(workPiece.element);
+    }
+  }
+
   _resetItems() {
-    this.renderedItems = {};
+    this.renderedPieces = {};
     this.hasRunScrollLoad = false;
-    this.elementPool = {};
+    this.piecePool = {};
     this.itemHeights = [];
+    this.lastScroll = 0;
 
     const infinite = ReactDOM.findDOMNode(this.refs.infinite);
     // Scroll to the top of the element
@@ -27,27 +43,34 @@ class Infinite extends React.Component {
   }
 
   /**
-   * Retrieves a free element or none if all taken
+   * Retrieves a free piece or none if all taken
    */
-  _getFreeElement(item) {
+  _getFreePiece(item) {
     let type = item.type;
-    if (!this.elementPool[type]) this.elementPool[type] = [];
-    let pool = this.elementPool[type];
+    if (!this.piecePool[type]) this.piecePool[type] = [];
+    let pool = this.piecePool[type];
 
     if (pool.length === 0) {
       return null;
     } else {
-      return this.elementPool.pop();
+      return pool.pop();
     }
   }
 
-  _recycleElement(item) {
+  _recyclePiece(piece) {
+    let item = piece.item;
     let type = item.type;
-    if (!this.elementPool[type]) this.elementPool[type] = [];
-    let pool = this.elementPool[type];
+    if (!this.piecePool[type]) this.piecePool[type] = [];
+    let pool = this.piecePool[type];
 
-    if (this.renderedItems[item.id]) {
-      pool.push(item);
+    if (this.renderedPieces[item.id]) {
+      let piece = this.renderedPieces[item.id];
+      piece.isVisible = false;
+      this.props.setItem(item, piece, true);
+      // let element = piece.element;
+      // element.parentNode.removeChild(element);
+      // delete this.renderedPieces[item.id];
+      // pool.push(piece);
     }
   }
 
@@ -61,15 +84,13 @@ class Infinite extends React.Component {
 
     for (let i = 0; i < this.props.items.length; ++i) {
       let item = this.props.items[i];
-      let data = this.props.setItem(item, this._getFreeElement(item));
-      this.renderedItems[item.id] = data;
-      this.container.appendChild(data.element);
+      this._setItem(item);
     }
   }
 
   componentWillUnmount() {
     this.shouldAnimate = false;
-    this.renderedItems = {};
+    this.renderedPieces = {};
   }
 
   componentDidUpdate() {
@@ -82,17 +103,41 @@ class Infinite extends React.Component {
     let newAdded = false;
     for (let i = 0; i < this.props.items.length; ++i) {
       let item = this.props.items[i];
-      // console.log(this.renderedItems[item.id], item.id);
-      if (!this.renderedItems[item.id]) {
+      if (!this.renderedPieces[item.id]) {
         newAdded = true;
-        let data = this.props.setItem(item, this._getFreeElement(item));
-        this.renderedItems[item.id] = data;
-        this.container.appendChild(data.element);
+        this._setItem(item);
       }
     }
 
     if (newAdded) {
       this.hasRunScrollLoad = false;
+    }
+  }
+
+  _checkVisiblity() {
+    let top = window.pageYOffset || document.documentElement.scrollTop;
+    if (this.lastScroll === top) return;
+    this.lastScroll = top;
+
+    let bottom = top + window.innerHeight;
+
+    for (let key in this.renderedPieces) {
+      let piece = this.renderedPieces[key];
+      let bounds = piece.element.getBoundingClientRect();
+      let eleTop = bounds.top;
+      let eleBot = bounds.bottom;
+
+      // Recycle element if out of range else show
+      if (eleBot < top || eleTop > bottom) {
+        if (piece.isVisible) {
+          this._recyclePiece(piece);
+        }
+      } else {
+        if (!piece.isVisible) {
+          console.log('reshow');
+          this._setItem(piece.item, piece);
+        }
+      }
     }
   }
 
@@ -113,13 +158,19 @@ class Infinite extends React.Component {
         }
       }
 
+      // Show or hide elements
+      this._checkVisiblity();
+
       window.requestAnimationFrame(this.handleAnimation);
     }
   }
 
   render() {
     return (
-      <div ref='infinite'></div>
+      <div ref='infinite'>
+        <div ref='spacerTop'></div>
+        <div ref='spacerBottom'></div>
+      </div>
     )
   }
 }

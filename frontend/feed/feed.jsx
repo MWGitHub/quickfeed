@@ -44,7 +44,6 @@ class Feed extends React.Component {
   }
 
   _handleScrollLoad() {
-    console.log('inf');
     let meta = this.state.meta;
     ApiUtil.fetchItems({ url: meta.next_url });
   }
