@@ -75,7 +75,7 @@ Removal is also O(log(n)) and can be run when an item is deleted or if one wants
 * Quick addition of items that are also sorted
 
 ###To-Do:
-* [ ] Add more To-Dos here
+* [ ] Optimize memory usage
 
 
 [welcome]: ./docs/images/welcome.png
