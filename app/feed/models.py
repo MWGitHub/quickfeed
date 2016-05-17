@@ -1,8 +1,10 @@
 from ..util.redis_util import redis_util
+import json
 
 class FeedItem(object):
     NAMESPACE = 'item:'
     NAMESPACE_COLLECTION = 'items:'
+    PIN_MOD = 100000000000000
 
     def __init__(self, properties):
         # Set the data from the properties
@@ -14,6 +16,7 @@ class FeedItem(object):
         data['type'] = properties.get('type')
         data['likes'] = properties.get('likes').get('count')
         data['comments'] = properties.get('comments').get('count')
+        data['pinned'] = False
 
         if properties.get('caption'):
             data['caption'] = properties.get('caption').get('text')
@@ -75,3 +78,48 @@ class FeedItem(object):
     def count(collection_type='default'):
         r = redis_util.redis
         return r.zcard(FeedItem.NAMESPACE_COLLECTION + collection_type)
+
+    @staticmethod
+    def get(item_id):
+        r = redis_util.redis
+        key = FeedItem.NAMESPACE + item_id
+        item = r.hgetall(key)
+        return item
+
+    @staticmethod
+    def pin(item_id, state):
+        r = redis_util.redis
+        key = FeedItem.NAMESPACE + item_id
+        if (r.exists(key)):
+            data = FeedItem.get(item_id)
+            # Hacky way to add pin score
+            if r.hget(key, 'pinned') == str(state):
+                return False
+
+            pin_add = 0
+            if state:
+                pin_add = FeedItem.PIN_MOD
+            else:
+                pin_add = -FeedItem.PIN_MOD
+
+            pipe = r.pipeline()
+            # Set the new pinned state
+            pipe.hset(key, 'pinned', state)
+
+            # Update the creation time list
+            collection_key = FeedItem.NAMESPACE_COLLECTION + 'default'
+            pipe.zadd(collection_key, pin_add + int(data.get('created_time')), item_id)
+
+            # Update the likes list
+            collection_key = FeedItem.NAMESPACE_COLLECTION + 'likes'
+            pipe.zadd(collection_key, pin_add + int(data.get('likes')), item_id)
+
+            # Update the comments list
+            collection_key = FeedItem.NAMESPACE_COLLECTION + 'comments'
+            pipe.zadd(collection_key, pin_add + int(data.get('comments')), item_id)
+
+            pipe.execute()
+
+            return True
+        else:
+            return False

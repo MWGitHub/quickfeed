@@ -112,6 +112,7 @@ body {
 
 .item-content-wrapper {
   margin: 0;
+  position: relative;
 }
 
 .item-content {
@@ -127,6 +128,30 @@ body {
     float: left;
     color: $color-stats;
   }
+}
+
+.item-stats-left {
+  float: left;
+}
+
+.item-stats-right {
+  float: right;
+}
+
+.item-pin {
+  background-color: #FF0000;
+  cursor: pointer;
+  float: left;
+  width: 20px;
+  height: 20px;
+}
+
+.item-pin-pinned {
+  background-color: #00FF00;
+}
+
+.item-pin-unpinned {
+  background-color: #FF0000;
 }
 
 @media (max-width: 600px) {

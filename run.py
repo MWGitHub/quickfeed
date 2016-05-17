@@ -3,7 +3,7 @@ import pdb
 import json
 import falcon
 from config import config
-from app.feed.controllers import FeedResource
+from app.feed.controllers import FeedResource, PinResource
 from app.feed.models import FeedItem
 import app.util.seeder as seeder
 
@@ -45,6 +45,8 @@ app.add_route('/static/{type}/{file}', StaticResource())
 # Add the feed resource and route
 feed = FeedResource()
 app.add_route('/api/feed', feed)
+pin = PinResource()
+app.add_route('/api/pin', pin)
 
 # Fetch the intial data
 print 'Fetching initial data...'

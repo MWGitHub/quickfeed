@@ -2,6 +2,7 @@ import React from 'react';
 import FeedItem from './feed-item';
 import Infinite from '../infinite/infinite';
 import moment from 'moment';
+import APIUtil from '../util/api-util';
 
 const IMAGE_TYPE = 'image';
 const VIDEO_TYPE = 'video';
@@ -23,6 +24,21 @@ class FeedList extends React.Component {
       return `<a href="https://www.instagram.com/${tag}/">${match}</a>`;
     });
     return output;
+  }
+
+  _onPin(item, piece) {
+    return function(e) {
+      let state = item.pinned === 'False' ? 'True' : 'False';
+      APIUtil.pinItem(item.id, state, _ => {
+        // Update pin class
+        if (item.pinned === 'False') {
+          piece.properties.pin.className = 'item-pin item-pin-pinned';
+        } else {
+          piece.properties.pin.className = 'item-pin item-pin-unpinned';
+        }
+        item.pinned = state;
+      });
+    }
   }
 
   _setItemProperties(item, piece, isDummy=false) {
@@ -47,12 +63,22 @@ class FeedList extends React.Component {
     }
     if (isDummy) {
       properties.content.setAttribute('src', '');
+      // Remove pin callback also
+      properties.pin.removeEventListener('click', properties.pin._listener);
     } else {
       if (item.type === VIDEO_TYPE) {
         properties.content.setAttribute('src', item.videos_standard_url);
       } else {
         properties.content.setAttribute('src', item.images_standard_url);
       }
+      // Update pin class
+      if (item.pinned === 'True') {
+        properties.pin.className = 'item-pin item-pin-pinned';
+      } else {
+        properties.pin.className = 'item-pin item-pin-unpinned';
+      }
+      properties.pin._listener = this._onPin(item, piece);
+      properties.pin.addEventListener('click', properties.pin._listener);
     }
     properties.content.style['max-width'] = '500px';
     properties.content.style.height = (height * ratio) + 'px';
@@ -94,24 +120,36 @@ class FeedList extends React.Component {
       content.className = 'item-content';
       contentWrapper.appendChild(content);
 
+
       let statsWrapper = document.createElement('div');
       statsWrapper.className = 'item-stats group';
       container.appendChild(statsWrapper);
+      let statsLeft = document.createElement('div');
+      statsLeft.className = 'item-stats-left group';
+      statsWrapper.appendChild(statsLeft);
+      let statsRight = document.createElement('div');
+      statsRight.className = 'item-stats-right group';
+      statsWrapper.appendChild(statsRight);
+
       let comments = document.createElement('p');
       comments.innerHTML = item.comments + ' comments';
-      statsWrapper.appendChild(comments);
+      statsLeft.appendChild(comments);
       let spacer = document.createElement('p');
       spacer.innerHTML = '&middot;';
-      statsWrapper.appendChild(spacer);
+      statsLeft.appendChild(spacer);
       let likes = document.createElement('p');
       likes.innerHTML = item.likes + ' likes';
-      statsWrapper.appendChild(likes);
+      statsLeft.appendChild(likes);
       spacer = document.createElement('p');
       spacer.innerHTML = '&middot;';
-      statsWrapper.appendChild(spacer);
+      statsLeft.appendChild(spacer);
       let time = document.createElement('p');
       time.innerHTML = moment.unix(parseInt(item.created_time)).fromNow();
-      statsWrapper.appendChild(time);
+      statsLeft.appendChild(time);
+      // Create the pin icon
+      let pin = document.createElement('div');
+      pin.className = 'item-pin';
+      statsRight.appendChild(pin);
 
       let newPiece = {
         element: container,
@@ -121,6 +159,7 @@ class FeedList extends React.Component {
           likes: likes,
           time: time,
           content: content,
+          pin: pin
         }
       };
 

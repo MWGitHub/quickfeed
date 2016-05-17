@@ -33,5 +33,23 @@ export default {
       FeedActions.receiveItems(req.items, req.pagination)
       return req;
     });
+  },
+
+  pinItem: function (id, state, callback) {
+    return co(function* () {
+      let req = yield request({
+        url: '/api/pin',
+        method: 'post',
+        contentType: 'application/json',
+        data: {
+          id: id,
+          state: state
+        }
+      });
+
+      callback && callback(req);
+
+      return req;
+    });
   }
 };
